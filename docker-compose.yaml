@@ -1,0 +1,56 @@
+version: '3'
+services:
+  php:
+    build: './php/'
+    image: php_mysqli:v1
+    container_name: php
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - ./www:/app
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - frontend
+      - backend
+    ports:
+      - '8001:80'
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/
+      - ./www:/app
+  mysql:
+    image: wagoautomation/mysql
+    container_name: mysql
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql:rw
+    ports:
+     - '3306:3306'
+    environment:
+     - MYSQL_ROOT_PASSWORD=your_password
+     - MYSQL_DATABASE=database_name
+    networks:
+     - backend
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: always
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+     - '1884:1883'
+     - '9001:9001'
+    networks:
+     - backend
+networks:
+  frontend:
+  backend:
+volumes:
+  mysql_data:
+    external: false
